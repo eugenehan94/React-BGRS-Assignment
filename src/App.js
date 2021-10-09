@@ -13,26 +13,34 @@ import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import "./App.css";
-import Container from "@material-ui/core/Container";
+
+/*Material UI imports */
 import Typography from "@material-ui/core/Typography";
 import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 import InputLabel from "@material-ui/core/InputLabel";
 import { makeStyles } from "@material-ui/core";
-
+import Box from "@material-ui/core/Box";
+import Spinner from "react-bootstrap/Spinner";
+/*Bootstrap imports*/
+import "bootstrap/dist/css/bootstrap.min.css";
+import { Container } from "react-bootstrap";
 import {
   gettingData,
   changeCharacterIndex,
   gettingFilm,
 } from "./redux/actions/fetchAction";
 
-const useStyles = makeStyles({});
+/*Material UI useStyles*/
+const useStyles = makeStyles({
+  input: { background: "yellow" },
+});
 
 function App() {
   const classes = useStyles();
   //useState to list the code b/c of map function
   const [loading, setLoading] = useState(true);
-  const [loading2, setLoading2] = useState(true);
+  const [innerLoading, setInnerLoading] = useState(true);
 
   const apiInfo = useSelector((state) => state.apiData);
   const dispatch = useDispatch();
@@ -58,7 +66,6 @@ function App() {
     if (!characterFilmArray) {
       return;
     }
-
     try {
       const response = await Promise.all(
         characterFilmArray[characterIndex].map((item) =>
@@ -67,7 +74,7 @@ function App() {
       );
       const data = response;
       dispatch(gettingFilm(data));
-      setLoading2(false);
+      setInnerLoading(false);
     } catch (error) {
       console.log(error);
     }
@@ -83,65 +90,83 @@ function App() {
 
   if (loading) {
     return (
-      <div>
+      <div
+        style={{
+          color: "yellow",
+        }}
+      >
         <Typography variant="h2" align="center">
           Loading...
         </Typography>
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <Spinner animation="border" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </Spinner>
+        </div>
       </div>
     );
   }
 
   const onChangeHandler = (data) => {
-    setLoading2(true);
+    setInnerLoading(true);
     dispatch(changeCharacterIndex(data));
   };
 
   return (
-    <Container maxWidth="sm">
-      {/* Character selection */}
-      <Typography variant="h1" gutterBottom>
-        Star Wars
-      </Typography>
-      <InputLabel id="demo-simple-select-label">Character: </InputLabel>
-      <Select
-        labelId="demo-simple-select-label"
-        onChange={(e) => onChangeHandler(e.target.value)}
-      >
-        {results.map((result, id) => {
-          return (
-            <MenuItem value={20} key={id} value={id}>
-              {result.name}
-            </MenuItem>
-          );
-        })}
-      </Select>
-
-      {/*List of movies */}
-      <Typography variant="h3">List of Movies</Typography>
-      {loading2 === true ? (
-        <Typography variant="h4" color="error">
-          Loading Bar
+    <div className="App">
+      <Container fluid="sm">
+        {/* Character selection */}
+        <Typography variant="h1" gutterBottom>
+          Star Wars
         </Typography>
-      ) : (
-        filmList.map((film, id) => {
-          return <h4 key={id}>{film.title}</h4>;
-        })
-      )}
+        <InputLabel id="demo-simple-select-label">Character: </InputLabel>
+        <Box my={3}>
+          <Select
+            className={classes.input}
+            style={{ minWidth: "30%" }}
+            labelId="demo-simple-select-label"
+            onChange={(e) => onChangeHandler(e.target.value)}
+          >
+            {results.map((result, id) => {
+              return (
+                <MenuItem value={20} key={id} value={id}>
+                  {result.name}
+                </MenuItem>
+              );
+            })}
+          </Select>
+        </Box>
+        {/*List of movies */}
+        <Typography variant="h3">List of Movies</Typography>
+        {innerLoading === true ? (
+          <Typography variant="h4" color="error">
+            <Spinner animation="border" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </Spinner>
+          </Typography>
+        ) : (
+          filmList.map((film, id) => {
+            return <h4 key={id}>{film.title}</h4>;
+          })
+        )}
 
-      {/*Name/year last movie*/}
-      <Typography variant="h3">Last seen in year: </Typography>
-      {loading2 === true ? (
-        <div></div>
-      ) : (
-        filmList.slice(-1).map((film, id) => {
-          return (
-            <Typography variant="h5" key={id}>
-              {film.release_date.substring(0, 4)}
-            </Typography>
-          );
-        })
-      )}
-    </Container>
+        {/*year last movie*/}
+        <Box my={2} pb={3}>
+          <Typography variant="h3">Last seen in year: </Typography>
+          {innerLoading === true ? (
+            <div></div>
+          ) : (
+            filmList.slice(-1).map((film, id) => {
+              return (
+                <Typography variant="h5" key={id}>
+                  {film.release_date.substring(0, 4)}
+                </Typography>
+              );
+            })
+          )}
+        </Box>
+      </Container>
+    </div>
   );
 }
 
